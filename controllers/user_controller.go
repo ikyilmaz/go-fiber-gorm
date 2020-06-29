@@ -20,14 +20,19 @@ func (u *UserController) GetMany(c *fiber.Ctx) {
 func (u *UserController) Create(c *fiber.Ctx) {
 	createUserForm := new(forms.CreateUser)
 
-	if err := c.BodyParser(&createUserForm); err != nil {
+	if err := c.BodyParser(createUserForm); err != nil {
 		c.Next(err)
 		return
 	}
 
-	// to the service...
+	userCreatedPublic, err := u.userService.CreateUser(createUserForm)
 
-	c.Status(fiber.StatusNotImplemented).JSON(utils.NewAPIError(fiber.StatusNotImplemented, "Not Implemented"))
+	if err != nil {
+		c.Next(err)
+		return
+	}
+
+	c.Status(fiber.StatusCreated).JSON(utils.Created(userCreatedPublic))
 }
 
 func (u *UserController) Get(c *fiber.Ctx) {
