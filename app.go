@@ -15,7 +15,7 @@ func init() {
 }
 
 func main() {
-	app := fiber.New()
+	app := fiber.New(&fiber.Settings{ErrorHandler: middlewares.ErrorHandler})
 
 	models.InitDB()
 
