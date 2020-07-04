@@ -15,12 +15,12 @@ func GetDB() *gorm.DB { return db }
 
 func InitDB() {
 	connString := fmt.Sprintf(
-		"user=%s password=%s database=%s sslmode=%s",
-		os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_SSLMODE"),
+		"host=%s port=%s user=%s password=%s database=%s sslmode=%s",
+		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"), os.Getenv("DB_SSLMODE"),
 	)
 
 	var err error
-	db, err = gorm.Open(postgres.Dialector{connString}, nil)
+	db, err = gorm.Open(postgres.Open(connString), nil)
 	lib.CheckErr(err, "trying to connect pg database")
 
 	sync(&syncOptions{Force: true})
