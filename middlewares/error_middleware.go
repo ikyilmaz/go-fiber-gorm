@@ -6,6 +6,16 @@ import (
 )
 
 func ErrorHandler(c *fiber.Ctx, err error) {
+
+	handleAPIError := func(c *fiber.Ctx, err *utils.APIError) {
+		c.JSON(err)
+	}
+
+	// TODO
+	handleDBError := func(c *fiber.Ctx, err *utils.DBError) {
+		c.JSON(utils.NewAPIError(500, err.Error()))
+	}
+
 	switch err.(type) {
 	case *utils.APIError:
 		handleAPIError(c, err.(*utils.APIError))
@@ -14,13 +24,4 @@ func ErrorHandler(c *fiber.Ctx, err error) {
 	default:
 		c.JSON(utils.NewAPIError(500, "something went wrong"))
 	}
-}
-
-func handleAPIError(c *fiber.Ctx, err *utils.APIError) {
-	c.JSON(err)
-}
-
-// TODO
-func handleDBError(c *fiber.Ctx, err *utils.DBError) {
-	c.JSON(utils.NewAPIError(500, err.Error()))
 }
