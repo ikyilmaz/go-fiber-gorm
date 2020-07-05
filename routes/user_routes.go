@@ -31,11 +31,14 @@ func userRoutes(router *fiber.Group) {
 
 	router.Patch(
 		"/:id",
+		pipes.ParseIntPipe(),
+		validators.ValidateUpdateUserForm,
 		userController.Update,
 	)
 
 	router.Delete(
 		"/:id",
+		pipes.ParseIntPipe(),
 		userController.Delete,
 	)
 }
