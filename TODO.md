@@ -1,1 +1,2 @@
-- [ ] **UserController** ve **UserService** bitirilip test edilecek.
+- [ ] **AuthController** eklenecek.
+- [X] **UserController** ve **UserService** bitirilip test edilecek.
