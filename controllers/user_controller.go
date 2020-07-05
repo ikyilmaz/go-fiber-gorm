@@ -14,7 +14,14 @@ func NewUserController(userService *services.UserService) *UserController {
 }
 
 func (u *UserController) GetMany(c *fiber.Ctx) {
-	c.Status(fiber.StatusNotImplemented).JSON(utils.NewAPIError(fiber.StatusNotImplemented, "Not Implemented"))
+	users, err := u.userService.GetManyUser(c)
+
+	if err != nil {
+		c.Next(err)
+		return
+	}
+
+	c.Status(fiber.StatusOK).JSON(utils.OK(users))
 }
 
 func (u *UserController) Create(c *fiber.Ctx) {
@@ -25,7 +32,7 @@ func (u *UserController) Create(c *fiber.Ctx) {
 		return
 	}
 
-	userCreatedPublic, err := u.userService.CreateUser(createUserForm)
+	userCreatedPublic, err := u.userService.CreateOneUser(createUserForm)
 
 	if err != nil {
 		c.Next(err)
@@ -36,7 +43,14 @@ func (u *UserController) Create(c *fiber.Ctx) {
 }
 
 func (u *UserController) Get(c *fiber.Ctx) {
-	c.Status(fiber.StatusNotImplemented).JSON(utils.NewAPIError(fiber.StatusNotImplemented, "Not Implemented"))
+	userResponse, err := u.userService.GetOneUserByID(c.Locals("id").(int))
+
+	if err != nil {
+		c.Next(err)
+		return
+	}
+
+	c.Status(fiber.StatusOK).JSON(utils.OK(userResponse))
 }
 
 func (u *UserController) Update(c *fiber.Ctx) {
