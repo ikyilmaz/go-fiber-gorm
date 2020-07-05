@@ -19,3 +19,11 @@ type UserCreatedPublic struct {
 	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+
+type UserPublic struct {
+	ID        uint      `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"createdAt"`
+}
