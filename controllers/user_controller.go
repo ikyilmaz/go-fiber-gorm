@@ -54,9 +54,30 @@ func (u *UserController) Get(c *fiber.Ctx) {
 }
 
 func (u *UserController) Update(c *fiber.Ctx) {
-	c.Status(fiber.StatusNotImplemented).JSON(utils.NewAPIError(fiber.StatusNotImplemented, "Not Implemented"))
+	updateUserForm := new(forms.UpdateUser)
+
+	if err := c.BodyParser(updateUserForm); err != nil {
+		c.Next(err)
+		return
+	}
+
+	userResponse, err := u.userService.UpdateOneUserByID(c.Locals("id").(int), updateUserForm)
+
+	if err != nil {
+		c.Next(err)
+		return
+	}
+
+	c.Status(fiber.StatusOK).JSON(utils.OK(userResponse))
 }
 
 func (u *UserController) Delete(c *fiber.Ctx) {
-	c.Status(fiber.StatusNotImplemented).JSON(utils.NewAPIError(fiber.StatusNotImplemented, "Not Implemented"))
+	err := u.userService.DeleteOneUserByID(c.Locals("id").(int))
+
+	if err != nil {
+		c.Next(err)
+		return
+	}
+
+	c.Status(fiber.StatusNoContent).JSON(utils.NoContent(nil))
 }

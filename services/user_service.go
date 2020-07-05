@@ -95,7 +95,73 @@ func (u *UserService) GetOneUserByID(id int) (*responses.UserPublic, error) {
 		ID:        user.ID,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
-		Username:  user.LastName,
+		Username:  user.Username,
 		CreatedAt: user.CreatedAt,
 	}, nil
+}
+
+func (u *UserService) UpdateOneUserByID(id int, updateUserForm *forms.UpdateUser) (*responses.UserPublic, error) {
+	db := u.db
+
+	userModel := new(models.UserModel)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Find(userModel).Error; err != nil {
+			return utils.NewDBError(err)
+		}
+
+		if userModel.ID == 0 {
+			return utils.NotFound()
+		}
+
+		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Updates(&models.UserModel{
+			FirstName: updateUserForm.FirstName,
+			LastName:  updateUserForm.LastName,
+			Username:  updateUserForm.Username,
+		}).Error; err != nil {
+			return utils.NewDBError(err)
+		}
+
+		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Find(userModel).Error; err != nil {
+			return utils.NewDBError(err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &responses.UserPublic{
+		ID:        userModel.ID,
+		FirstName: userModel.FirstName,
+		LastName:  userModel.LastName,
+		Username:  userModel.Username,
+		CreatedAt: userModel.CreatedAt,
+	}, nil
+}
+
+func (u *UserService) DeleteOneUserByID(id int) error {
+	db := u.db
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		userModel := new(models.UserModel)
+
+		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Find(userModel).Error; err != nil {
+			return utils.NewDBError(err)
+		}
+
+		if userModel.ID == 0 {
+			return utils.NotFound()
+		}
+
+		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Delete(new(models.UserModel)).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return err
 }
