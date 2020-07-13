@@ -24,34 +24,23 @@ func (u *UserService) GetManyUser(c *fiber.Ctx) (*[]responses.UserPublic, error)
 		return nil, err
 	}
 
-	var users []models.UserModel
+	users := new([]responses.UserPublic)
 
-	if err = db.Clauses(
+	if err = db.Model(new(models.UserModel)).Clauses(
 		clause.Limit{Limit: limit, Offset: offset},
-		//utils.LikeQuery("username", c.Query("username")),
-		//utils.LikeQuery("first_name", c.Query("firstName")),
-		//utils.LikeQuery("last_name", c.Query("lastName")),
+		//lib.LikeQuery("username", c.Query("username")),
+		//lib.LikeQuery("first_name", c.Query("firstName")),
+		//lib.LikeQuery("last_name", c.Query("lastName")),
 	).Find(&users).Error; err != nil {
 		return nil, utils.NewDBError(err)
 	}
 
-	if len(users) == 0 {
+	if len(*users) == 0 {
 		return nil, utils.NotFound()
 	}
 
-	var userResponse []responses.UserPublic
+	return users, nil
 
-	for _, user := range users {
-		userResponse = append(userResponse, responses.UserPublic{
-			ID:        user.ID,
-			FirstName: user.FirstName,
-			LastName:  user.LastName,
-			Username:  user.Username,
-			CreatedAt: user.CreatedAt,
-		})
-	}
-
-	return &userResponse, nil
 }
 
 func (u *UserService) CreateOneUser(createUserForm *forms.CreateUser) (*responses.UserCreatedPublic, *utils.DBError) {
@@ -65,7 +54,7 @@ func (u *UserService) CreateOneUser(createUserForm *forms.CreateUser) (*response
 		Password:  createUserForm.Password,
 	}
 
-	if err := db.Create(&userModel).Error; err != nil {
+	if err := db.Model(new(models.UserModel)).Create(&userModel).Error; err != nil {
 		return nil, utils.NewDBError(err)
 	}
 
@@ -81,9 +70,9 @@ func (u *UserService) CreateOneUser(createUserForm *forms.CreateUser) (*response
 func (u *UserService) GetOneUserByID(id int) (*responses.UserPublic, error) {
 	db := u.db
 
-	var user models.UserModel
+	user := new(responses.UserPublic)
 
-	if err := db.Clauses(clause.Eq{Column: "id", Value: id}).Find(&user).Error; err != nil {
+	if err := db.Model(new(models.UserModel)).Clauses(clause.Eq{Column: "id", Value: id}).Find(user).Error; err != nil {
 		return nil, utils.NewDBError(err)
 	}
 
@@ -91,29 +80,30 @@ func (u *UserService) GetOneUserByID(id int) (*responses.UserPublic, error) {
 		return nil, utils.NotFound()
 	}
 
-	return &responses.UserPublic{
-		ID:        user.ID,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Username:  user.Username,
-		CreatedAt: user.CreatedAt,
-	}, nil
+	return user, nil
 }
 
 func (u *UserService) UpdateOneUserByID(id int, updateUserForm *forms.UpdateUser) (*responses.UserPublic, error) {
 	db := u.db
 
-	userModel := new(models.UserModel)
+	user := new(responses.UserPublic)
 
 	err := db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Find(userModel).Error; err != nil {
+
+		// Check if user exists or not
+		if err := tx.
+			Model(new(models.UserModel)).
+			Clauses(clause.Eq{Column: "id", Value: id}).
+			Find(user).Error; err != nil {
 			return utils.NewDBError(err)
 		}
 
-		if userModel.ID == 0 {
+		// if not exists then return not found error
+		if user.ID == 0 {
 			return utils.NotFound()
 		}
 
+		// update user with the given fields. gorm will handle with zero values
 		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Updates(&models.UserModel{
 			FirstName: updateUserForm.FirstName,
 			LastName:  updateUserForm.LastName,
@@ -122,7 +112,8 @@ func (u *UserService) UpdateOneUserByID(id int, updateUserForm *forms.UpdateUser
 			return utils.NewDBError(err)
 		}
 
-		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Find(userModel).Error; err != nil {
+		// then find updated user
+		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Find(user).Error; err != nil {
 			return utils.NewDBError(err)
 		}
 
@@ -133,13 +124,7 @@ func (u *UserService) UpdateOneUserByID(id int, updateUserForm *forms.UpdateUser
 		return nil, err
 	}
 
-	return &responses.UserPublic{
-		ID:        userModel.ID,
-		FirstName: userModel.FirstName,
-		LastName:  userModel.LastName,
-		Username:  userModel.Username,
-		CreatedAt: userModel.CreatedAt,
-	}, nil
+	return user, nil
 }
 
 func (u *UserService) DeleteOneUserByID(id int) error {
@@ -148,14 +133,17 @@ func (u *UserService) DeleteOneUserByID(id int) error {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		userModel := new(models.UserModel)
 
+		// check if user exists or not
 		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Find(userModel).Error; err != nil {
 			return utils.NewDBError(err)
 		}
 
+		// if not exists then throw not found error
 		if userModel.ID == 0 {
 			return utils.NotFound()
 		}
 
+		// delete
 		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Delete(new(models.UserModel)).Error; err != nil {
 			return err
 		}
