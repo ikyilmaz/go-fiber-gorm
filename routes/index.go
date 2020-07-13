@@ -7,4 +7,5 @@ func InitRoutes(app *fiber.App) {
 	v1 := api.Group("/v1")
 
 	userRoutes(v1.Group("/users"))
+	authRoutes(v1.Group("/auth"))
 }
