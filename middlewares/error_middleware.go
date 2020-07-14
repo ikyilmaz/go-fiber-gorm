@@ -8,6 +8,7 @@ import (
 func ErrorHandler(c *fiber.Ctx, err error) {
 
 	handleAPIError := func(c *fiber.Ctx, err *utils.APIError) {
+		c.Status(err.StatusCode)
 		c.JSON(err)
 	}
 
