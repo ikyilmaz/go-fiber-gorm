@@ -44,3 +44,7 @@ func NotFound(msg ...string) *APIError {
 func Forbidden(msg ...string) *APIError {
 	return NewAPIError(403, getDefaultMessage("Forbidden", msg...))
 }
+
+func Unauthorized(msg ...string) *APIError {
+	return NewAPIError(401, getDefaultMessage("Unauthorized", msg...))
+}
