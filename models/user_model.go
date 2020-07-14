@@ -1,5 +1,10 @@
 package models
 
+import (
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+)
+
 type UserModel struct {
 	BaseModel
 	FirstName string `gorm:"type:varchar(32);"`
@@ -10,3 +15,17 @@ type UserModel struct {
 }
 
 func (u UserModel) TableName() string { return "users" }
+
+func (u *UserModel) BeforeSave(db *gorm.DB) error {
+	if u.Password != "" {
+		byteHashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), 12)
+
+		if err != nil {
+			return err
+		}
+
+		u.Password = string(byteHashedPassword)
+	}
+
+	return nil
+}
