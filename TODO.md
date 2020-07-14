@@ -1,2 +1,3 @@
-- [ ] **AuthController** eklenecek.
+- [ ] **AuthRequired** middleware eklenecek.
+- [X] **AuthController** eklenecek.
 - [X] **UserController** ve **UserService** bitirilip test edilecek.
