@@ -1,11 +1,11 @@
 package services
 
 import (
-	"fiber-rest-api/forms"
 	"fiber-rest-api/lib"
 	"fiber-rest-api/models"
 	"fiber-rest-api/responses"
 	"fiber-rest-api/utils"
+	"fiber-rest-api/validators"
 	"github.com/gofiber/fiber"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -43,27 +43,27 @@ func (u *UserService) GetManyUser(c *fiber.Ctx) (*[]responses.UserPublic, error)
 
 }
 
-func (u *UserService) CreateOneUser(createUserForm *forms.CreateUser) (*responses.UserCreatedPublic, *utils.DBError) {
+func (u *UserService) CreateOneUser(body *validators.CreateUser) (*responses.UserCreatedPublic, error) {
 	db := u.db
 
-	userModel := models.UserModel{
-		FirstName: createUserForm.FirstName,
-		LastName:  createUserForm.LastName,
-		Username:  createUserForm.Username,
-		Email:     createUserForm.Email,
-		Password:  createUserForm.Password,
+	user := models.UserModel{
+		FirstName: body.FirstName,
+		LastName:  body.LastName,
+		Username:  body.Username,
+		Email:     body.Email,
+		Password:  body.Password,
 	}
 
-	if err := db.Model(new(models.UserModel)).Create(&userModel).Error; err != nil {
+	if err := db.Model(new(models.UserModel)).Create(&user).Error; err != nil {
 		return nil, utils.NewDBError(err)
 	}
 
 	return &responses.UserCreatedPublic{
-		ID:        userModel.ID,
-		FirstName: userModel.FirstName,
-		LastName:  userModel.LastName,
-		Username:  userModel.Username,
-		CreatedAt: userModel.CreatedAt,
+		ID:        user.ID,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Username:  user.Username,
+		CreatedAt: user.CreatedAt,
 	}, nil
 }
 
@@ -83,7 +83,7 @@ func (u *UserService) GetOneUserByID(id int) (*responses.UserPublic, error) {
 	return user, nil
 }
 
-func (u *UserService) UpdateOneUserByID(id int, updateUserForm *forms.UpdateUser) (*responses.UserPublic, error) {
+func (u *UserService) UpdateOneUserByID(id int, body *validators.UpdateUser) (*responses.UserPublic, error) {
 	db := u.db
 
 	user := new(responses.UserPublic)
@@ -105,9 +105,9 @@ func (u *UserService) UpdateOneUserByID(id int, updateUserForm *forms.UpdateUser
 
 		// update user with the given fields. gorm will handle with zero values
 		if err := tx.Clauses(clause.Eq{Column: "id", Value: id}).Updates(&models.UserModel{
-			FirstName: updateUserForm.FirstName,
-			LastName:  updateUserForm.LastName,
-			Username:  updateUserForm.Username,
+			FirstName: body.FirstName,
+			LastName:  body.LastName,
+			Username:  body.Username,
 		}).Error; err != nil {
 			return utils.NewDBError(err)
 		}

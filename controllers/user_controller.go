@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"fiber-rest-api/forms"
 	"fiber-rest-api/services"
 	"fiber-rest-api/utils"
+	"fiber-rest-api/validators"
 	"github.com/gofiber/fiber"
 )
 
@@ -25,10 +25,10 @@ func (u *UserController) GetMany(c *fiber.Ctx) {
 }
 
 func (u *UserController) Create(c *fiber.Ctx) {
-	createUserForm := new(forms.CreateUser)
+	createUserForm := new(validators.CreateUser)
 
-	if err := c.BodyParser(createUserForm); err != nil {
-		c.Next(err)
+	if err := utils.ValidateBody(createUserForm, c); err != nil {
+		c.Next(utils.BadRequest(err.Error()))
 		return
 	}
 
@@ -54,9 +54,9 @@ func (u *UserController) Get(c *fiber.Ctx) {
 }
 
 func (u *UserController) Update(c *fiber.Ctx) {
-	updateUserForm := new(forms.UpdateUser)
+	updateUserForm := new(validators.UpdateUser)
 
-	if err := c.BodyParser(updateUserForm); err != nil {
+	if err := utils.ValidateBody(updateUserForm, c); err != nil {
 		c.Next(err)
 		return
 	}

@@ -1,43 +1,38 @@
 package validators
 
 import (
-	"fiber-rest-api/utils"
-	"github.com/faceair/jio"
-	"github.com/gofiber/fiber"
+	v "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 )
 
-func ValidateCreateUserForm(c *fiber.Ctx) {
-	body := []byte(c.Body())
-
-	_, err := jio.ValidateJSON(&body, jio.Object().Keys(jio.K{
-		"firstName": jio.String().Optional().Min(2).Max(32),
-		"lastName":  jio.String().Optional().Min(2).Max(32),
-		"username":  jio.String().Required().Min(2).Max(32),
-		"email":     jio.String().Required().Max(128),
-		"password":  jio.String().Required().Min(8).Max(32),
-	}).Required())
-
-	if err != nil {
-		c.Next(utils.NewAPIError(400, err.Error()))
-		return
-	}
-
-	c.Next()
+type CreateUser struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
 }
 
-func ValidateUpdateUserForm(c *fiber.Ctx) {
-	body := []byte(c.Body())
+func (u CreateUser) Validate() error {
+	return v.ValidateStruct(&u,
+		v.Field(&u.FirstName, v.Length(2, 32)),
+		v.Field(&u.LastName, v.Length(2, 32)),
+		v.Field(&u.Username, v.Required, v.Length(2, 32)),
+		v.Field(&u.Email, v.Required, is.Email),
+		v.Field(&u.Password, v.Required, v.Length(6, 32)),
+	)
+}
 
-	_, err := jio.ValidateJSON(&body, jio.Object().Keys(jio.K{
-		"firstName": jio.String().Optional().Min(2).Max(32),
-		"lastName":  jio.String().Optional().Min(2).Max(32),
-		"username":  jio.String().Optional().Min(2).Max(32),
-	}).Required())
+type UpdateUser struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Username  string `json:"username"`
+}
 
-	if err != nil {
-		c.Next(utils.NewAPIError(400, err.Error()))
-		return
-	}
-
-	c.Next()
+func (u UpdateUser) Validate() error {
+	return v.ValidateStruct(&u,
+		v.Field(&u.FirstName, v.Length(2, 32)),
+		v.Field(&u.LastName, v.Length(2, 32)),
+		v.Field(&u.Username, v.Length(2, 32)),
+	)
 }
